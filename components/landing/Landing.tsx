@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import useSpotify from '../../hooks/useSpotify'
 import useAccessToken from '../../hooks/useAccessToken'
 import { getMyPlaylists } from '../../lib/spotifyLibrary'
+import { getNewReleases, getMyTopTracks, getRecommendations } from '../../lib/spotifyBrowse'
 import Cards from '../shared/Cards'
 import Tracks from '../shared/Tracks'
 
@@ -54,9 +55,9 @@ export default function Landing() {
                 .catch(function() {
                 })
 
-            spotifyApi.getNewReleases({ limit: 10, country: 'US' })
+            getNewReleases(accessToken, { limit: 10, country: 'US' })
                 .then(function(data) {
-                    setNewReleases(data.body.albums.items)
+                    setNewReleases(data.albums.items)
                 })
                 .catch(function() {
                 })
@@ -64,25 +65,25 @@ export default function Landing() {
     }, [session, spotifyApi, accessToken])
 
     useEffect(() => {
-        if (spotifyApi.getAccessToken() && topArtists.length > 0) {
-            spotifyApi.getMyTopTracks({ limit: 5 })
+        if (accessToken && topArtists.length > 0) {
+            getMyTopTracks(accessToken, { limit: 5 })
                 .then(function(data) {
                     const seedArtists = topArtists.slice(0, 3).map((artist) => artist.id)
-                    const seedTracks = data.body.items.slice(0, 2).map((track) => track.id)
+                    const seedTracks = data.items.slice(0, 2).map((track: any) => track.id)
 
-                    return spotifyApi.getRecommendations({
-                        seed_artists: seedArtists,
-                        seed_tracks: seedTracks,
+                    return getRecommendations(accessToken, {
+                        seedArtists,
+                        seedTracks,
                         limit: 10,
                     })
                 })
                 .then(function(data) {
-                    setRecommendations(data.body.tracks)
+                    setRecommendations(data.tracks)
                 })
                 .catch(function() {
                 })
         }
-    }, [spotifyApi, topArtists])
+    }, [accessToken, topArtists])
 
     return (
         <div className="px-4 mt-6 mb-40 mx-8 sm:px-6 lg:px-8">

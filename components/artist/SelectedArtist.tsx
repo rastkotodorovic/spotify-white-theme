@@ -4,12 +4,15 @@ import { SetStateAction, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
 import useSpotify from '../../hooks/useSpotify'
+import useAccessToken from '../../hooks/useAccessToken'
+import { getArtistTopTracks } from '../../lib/spotifyBrowse'
 import Cards from '../shared/Cards'
 import CurrentCard from '../shared/CurrentCard'
 import Tracks from '../shared/Tracks'
 
 export default function SelectedArtist() {
     const spotifyApi = useSpotify()
+    const accessToken = useAccessToken()
     const params = useParams()
     const artistId = params?.artistId as string
     const [ albums, setAlbums ] = useState([])
@@ -40,12 +43,14 @@ export default function SelectedArtist() {
                 .catch(function() {
                 })
 
-            spotifyApi.getArtistTopTracks(artistId, 'US')
-                .then(function(data: { body: { tracks: SetStateAction<never[]> } }) {
-                  setTopTracks(data.body.tracks)
-                })
-                .catch(function() {
-                })
+            if (accessToken) {
+                getArtistTopTracks(accessToken, artistId)
+                    .then(function(data: { tracks: SetStateAction<never[]> }) {
+                      setTopTracks(data.tracks)
+                    })
+                    .catch(function() {
+                    })
+            }
         }
     }, [spotifyApi.getAccessToken(), artistId])
 
