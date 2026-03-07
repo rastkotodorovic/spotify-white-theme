@@ -17,6 +17,8 @@ export default function Landing() {
     const [ topArtists, setTopArtists ] = useState<any[]>([])
     const [ recentAlbums, setRecentAlbums ] = useState<any[]>([])
     const [ recentlyPlayed, setRecentlyPlayed ] = useState<any[]>([])
+    const [ newReleases, setNewReleases ] = useState<any[]>([])
+    const [ recommendations, setRecommendations ] = useState<any[]>([])
 
     useEffect(() => {
         if (spotifyApi.getAccessToken() && accessToken) {
@@ -51,14 +53,51 @@ export default function Landing() {
                 })
                 .catch(function() {
                 })
+
+            spotifyApi.getNewReleases({ limit: 10, country: 'US' })
+                .then(function(data) {
+                    setNewReleases(data.body.albums.items)
+                })
+                .catch(function() {
+                })
         }
     }, [session, spotifyApi, accessToken])
+
+    useEffect(() => {
+        if (spotifyApi.getAccessToken() && topArtists.length > 0) {
+            spotifyApi.getMyTopTracks({ limit: 5 })
+                .then(function(data) {
+                    const seedArtists = topArtists.slice(0, 3).map((artist) => artist.id)
+                    const seedTracks = data.body.items.slice(0, 2).map((track) => track.id)
+
+                    return spotifyApi.getRecommendations({
+                        seed_artists: seedArtists,
+                        seed_tracks: seedTracks,
+                        limit: 10,
+                    })
+                })
+                .then(function(data) {
+                    setRecommendations(data.body.tracks)
+                })
+                .catch(function() {
+                })
+        }
+    }, [spotifyApi, topArtists])
 
     return (
         <div className="px-4 mt-6 mb-40 mx-8 sm:px-6 lg:px-8">
             <Cards playlists={featuredPlaylists} title="Featured playlists" href="playlist" />
 
+            <Cards playlists={newReleases} title="New releases" href="albums" />
+
             <Cards playlists={topArtists} title="My top artists" href="artists" />
+
+            {recommendations.length > 0 && (
+                <>
+                    <h2 className="text-gray-600 text-md font-medium tracking-wide">Recommended for you</h2>
+                    <Tracks tracks={recommendations} />
+                </>
+            )}
 
             <Cards playlists={recentAlbums} title="Recently Played" href="albums" />
 

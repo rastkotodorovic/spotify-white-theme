@@ -1,15 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useSession } from "next-auth/react"
+import { PlusIcon } from '@heroicons/react/24/outline'
 
 import Profile from "./Profile"
 import SearchInput from "./SearchInput"
 import Navigation from "./Navigation"
 import MyPlaylists from "./MyPlaylists"
+import CreatePlaylistModal from '../../playlist/CreatePlaylistModal'
+import useRefreshPlaylists from '../../../hooks/useRefreshPlaylists'
 
 export default function Sidebar() {
     const { data: session } = useSession()
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const refreshPlaylists = useRefreshPlaylists()
 
     return (
         <>
@@ -35,11 +41,27 @@ export default function Sidebar() {
                         <hr className="mt-3" />
                     </div>
 
+                    <div className="px-3 mt-3">
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-50 w-full"
+                        >
+                            <PlusIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                            Create Playlist
+                        </button>
+                    </div>
+
                     <div className="px-3 mb-24 overflow-y-auto">
                         <MyPlaylists session={session} />
                     </div>
                 </div>
             </div>
+
+            <CreatePlaylistModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onCreated={refreshPlaylists}
+            />
         </>
     )
 }

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import useSpotify from '../../hooks/useSpotify'
 import Cards from '../shared/Cards'
 import CurrentCard from '../shared/CurrentCard'
+import Tracks from '../shared/Tracks'
 
 export default function SelectedArtist() {
     const spotifyApi = useSpotify()
@@ -14,6 +15,7 @@ export default function SelectedArtist() {
     const [ albums, setAlbums ] = useState([])
     const [ artist, setArtist ] = useState([])
     const [ relatedArtists, setRelatedArtists ] = useState([])
+    const [ topTracks, setTopTracks ] = useState([])
 
     useEffect(() => {
         if (spotifyApi.getAccessToken() && artistId) {
@@ -37,12 +39,26 @@ export default function SelectedArtist() {
                 })
                 .catch(function() {
                 })
+
+            spotifyApi.getArtistTopTracks(artistId, 'US')
+                .then(function(data: { body: { tracks: SetStateAction<never[]> } }) {
+                  setTopTracks(data.body.tracks)
+                })
+                .catch(function() {
+                })
         }
     }, [spotifyApi.getAccessToken(), artistId])
 
     return (
         <div className="px-4 mt-6 mx-8 sm:px-6 lg:px-8">
             <CurrentCard type="artist" playlist={artist} />
+
+            {topTracks.length > 0 && (
+                <div className="mt-10">
+                    <h2 className="text-gray-600 text-md font-medium tracking-wide">Top tracks</h2>
+                    <Tracks tracks={topTracks} />
+                </div>
+            )}
 
             <div className="mt-10">
                 <Cards playlists={albums} title="Albums" href="albums" />

@@ -11,6 +11,7 @@ type Props = {
     offset?: number|null
     setOffset?: { (offset: number): void } | null
     playlist?: any
+    onRemoveTrack?: (trackUri: string) => void
 }
 
 interface RefObject {
@@ -18,7 +19,7 @@ interface RefObject {
     observe: (node) => void
 }
 
-export default function Tracks({ tracks, offset = null, setOffset = null, playlist }: Props) {
+export default function Tracks({ tracks, offset = null, setOffset = null, playlist, onRemoveTrack }: Props) {
     const accessToken = useAccessToken()
     const [ isFollowed, setIsFollowed ] = useState<boolean[]>([])
 
@@ -81,6 +82,7 @@ export default function Tracks({ tracks, offset = null, setOffset = null, playli
                                     number={index}
                                     isFollowed={isFollowed}
                                     setIsFollowed={setIsFollowed}
+                                    onRemoveTrack={onRemoveTrack}
                                 />
                             )
                         } else {
@@ -92,6 +94,7 @@ export default function Tracks({ tracks, offset = null, setOffset = null, playli
                                     isFollowed={isFollowed}
                                     setIsFollowed={setIsFollowed}
                                     playlist={playlist}
+                                    onRemoveTrack={onRemoveTrack}
                                 />
                             )
                         }
