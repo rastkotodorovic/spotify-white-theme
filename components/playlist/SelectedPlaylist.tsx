@@ -10,7 +10,8 @@ import useSpotify from '../../hooks/useSpotify'
 import useAccessToken from '../../hooks/useAccessToken'
 import useRefreshPlaylists from '../../hooks/useRefreshPlaylists'
 import { getPlaylistItems } from '../../lib/spotifyLibrary'
-import { updatePlaylistDetails, unfollowPlaylist, removeTracksFromPlaylist } from '../../lib/spotifyPlaylist'
+import { updatePlaylistDetails, unfollowPlaylist, removeTracksFromPlaylist, reorderPlaylistTracks } from '../../lib/spotifyPlaylist'
+import { arrayMove } from '@dnd-kit/sortable'
 import CurrentCard from '../shared/CurrentCard'
 
 interface Playlist {
@@ -91,6 +92,18 @@ export default function SelectedPlaylist() {
             .catch(() => {})
     }
 
+    const handleReorderTrack = (oldIndex: number, newIndex: number) => {
+        if (!accessToken || oldIndex === newIndex) return
+        const previousTracks = [...tracks]
+        setTracks(arrayMove(tracks, oldIndex, newIndex))
+        const rangeStart = oldIndex
+        const insertBefore = oldIndex < newIndex ? newIndex + 1 : newIndex
+        reorderPlaylistTracks(accessToken, playlistId, rangeStart, insertBefore)
+            .catch(() => {
+                setTracks(previousTracks)
+            })
+    }
+
     const handleRemoveTrack = (trackUri: string) => {
         if (!accessToken) return
         removeTracksFromPlaylist(accessToken, playlistId, [trackUri])
@@ -168,6 +181,7 @@ export default function SelectedPlaylist() {
                 setOffset={setOffset}
                 playlist={playlist}
                 onRemoveTrack={isOwner ? handleRemoveTrack : undefined}
+                onReorderTrack={isOwner ? handleReorderTrack : undefined}
             />
         </>
     )

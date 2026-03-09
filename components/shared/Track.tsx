@@ -10,16 +10,21 @@ import AddToPlaylistMenu from '../playlist/AddToPlaylistMenu'
 
 type Props = {
     track: any
-    key: number
+    key?: number
     isFollowed: boolean[]
     setIsFollowed: { (offset: boolean[]): void }
     number: number
     lastTrack?: any
     playlist?: any
     onRemoveTrack?: (trackUri: string) => void
+    dragHandleListeners?: Record<string, any>
+    dragHandleAttributes?: Record<string, any>
+    sortableRef?: (node: HTMLElement | null) => void
+    sortableStyle?: React.CSSProperties
+    isDragging?: boolean
 }
 
-export default function Track({ track, number, isFollowed, setIsFollowed, lastTrack, playlist, onRemoveTrack }: Props) {
+export default function Track({ track, number, isFollowed, setIsFollowed, lastTrack, playlist, onRemoveTrack, dragHandleListeners, dragHandleAttributes, sortableRef, sortableStyle, isDragging }: Props) {
     const spotifyApi = useSpotify()
     const accessToken = useAccessToken()
     const trackId = useTrackStore((state) => state.trackId)
@@ -78,14 +83,37 @@ export default function Track({ track, number, isFollowed, setIsFollowed, lastTr
         }
     }
 
+    const combinedRef = (node: HTMLElement | null) => {
+        if (sortableRef) sortableRef(node)
+        if (lastTrack) lastTrack(node)
+    }
+
     return (
         <tr
-            className={`hover:bg-gray-100 cursor-pointer ${trackId === track.id ? 'bg-gray-100' : ''}`}
+            className={`hover:bg-gray-100 cursor-pointer ${trackId === track.id ? 'bg-gray-100' : ''} ${isDragging ? 'opacity-50' : ''}`}
             onClick={playSong}
-            ref={lastTrack}
+            ref={combinedRef}
+            style={sortableStyle}
         >
             <td className="px-6 py-4 max-w-0 w-5/12 whitespace-nowrap text-sm font-medium text-gray-900">
                 <div className="flex items-center space-x-3 lg:pl-2">
+                    {dragHandleListeners && (
+                        <button
+                            className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white"
+                            onClick={(event) => event.stopPropagation()}
+                            {...dragHandleAttributes}
+                            {...dragHandleListeners}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <circle cx="5" cy="3" r="1.5" />
+                                <circle cx="11" cy="3" r="1.5" />
+                                <circle cx="5" cy="8" r="1.5" />
+                                <circle cx="11" cy="8" r="1.5" />
+                                <circle cx="5" cy="13" r="1.5" />
+                                <circle cx="11" cy="13" r="1.5" />
+                            </svg>
+                        </button>
+                    )}
                     <p className="text-sm text-gray-500 mr-1">{++number}</p>
                     <img
                         className="h-10 w-10 rounded"

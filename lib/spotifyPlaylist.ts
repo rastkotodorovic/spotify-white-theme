@@ -64,3 +64,20 @@ export async function removeTracksFromPlaylist(
     },
   })
 }
+
+export async function reorderPlaylistTracks(
+  accessToken: string,
+  playlistId: string,
+  rangeStart: number,
+  insertBefore: number,
+  rangeLength: number = 1
+): Promise<any> {
+  return spotifyFetch(accessToken, `/playlists/${playlistId}/tracks`, {
+    method: 'PUT',
+    body: {
+      range_start: rangeStart,
+      insert_before: insertBefore,
+      range_length: rangeLength,
+    },
+  })
+}
